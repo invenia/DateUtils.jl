@@ -1,5 +1,7 @@
 module DateUtils
 
-# package code goes here
+export condense
+
+include("condense.jl")
 
 end # module
