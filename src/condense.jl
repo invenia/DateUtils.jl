@@ -33,3 +33,25 @@ function condense{P<:Period}(periods::Array{P})
 
     return condense(result)
 end
+
+# A variant of condense that doesn't use recursion
+function condense2{P<:Period}(periods::Array{P})
+    period_values = Array{Int64}(periods)
+    last_type = eltype(periods)
+    while true
+        new_type, scalar = coarserperiod(last_type)
+
+        for i in eachindex(period_values)
+            v, r = divrem(period_values[i], scalar)
+            if r == 0
+                period_values[i] = v
+            else
+                return periods
+            end
+        end
+
+        periods = Array{new_type}(period_values)
+    end
+
+    return periods
+end
