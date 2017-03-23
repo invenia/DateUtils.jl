@@ -4,4 +4,4 @@ export condense
 
 include("condense.jl")
 
-end # module
+end  # module
