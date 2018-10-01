@@ -1,5 +1,5 @@
 using DateUtils
-using Base.Test
+using Compat.Test
 
 @testset "DateUtils" begin
     include("condense.jl")
