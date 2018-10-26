@@ -10,4 +10,6 @@ makedocs(
     sitename = "DateUtils.jl",
     authors = "Curtis Vogt",
     assets = ["assets/invenia.css"],
+    strict = true,
+    checkdocs = :none,
 )
