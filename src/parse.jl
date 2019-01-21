@@ -12,15 +12,24 @@ const STRING_TO_PERIOD = Dict(
     "Nanosecond" => Nanosecond,
 )
 
+# Working on incorporating this into base
+_regex(re::Regex...) = Regex(string([r.pattern for r in re]...))
+
 # Regex components for our interval parsing
 const LEFT_INC_RE = r"^(\[|\()"
 const RIGHT_INC_RE = r"(\]|\))$"
 const DATE_RE = r"(\d{4})-(\d{1,2})-(\d{1,2})"
 const HR_RE = r" (H[EB])(\d{1,2})"
 const TZ_RE = r"([+-][\d|:]+)"
+# "(2018-12-02T23:00:00-06:00 .. 2018-12-03T00:00:00-06:00]"
+const INTERVAL_RE = _regex(LEFT_INC_RE, r"([\d\-T:.]+) .. ([\d\-T:.]+)", RIGHT_INC_RE)
+# "[2019-01-18 HB16)"
+const ANCHORED_RE = _regex(LEFT_INC_RE, DATE_RE, HR_RE, r".*", RIGHT_INC_RE)
+# "[2019-01-18 HB16-06:00)"
+const ANCHORED_TZ_RE = _regex(LEFT_INC_RE, DATE_RE, HR_RE, TZ_RE, RIGHT_INC_RE)
+# "2019-01-18T17:00:00-06:00"
+const ZDT_RE = _regex(r"^([\d\-]+T[\d:]+)(.\d{1,3})?([+-][[\d:]+)$")
 
-# Working on incorporating this into base
-_regex(re::Regex...) = Regex(string([r.pattern for r in re]...))
 
 function Base.parse(::Type{Period}, str::AbstractString)
     m = match(r"^(?<type>\w+)\((?<value>-?\d+)\)$", str)
@@ -53,11 +62,7 @@ to ensure that you're output strings are parsable.
 =#
 
 function Base.parse(::Type{Interval{T}}, str::AbstractString) where T
-    #=
-    Example: "(2018-12-02T23:00:00-06:00 .. 2018-12-03T00:00:00-06:00]"
-    =#
-    re = _regex(LEFT_INC_RE, r"([\d\-T:.]+) .. ([\d\-T:.]+)", RIGHT_INC_RE)
-    m = match(re, str)
+    m = match(INTERVAL_RE, str)
 
     if m === nothing
         throw(ArgumentError("Failed to parse Interval string $str w/ $re"))
@@ -70,23 +75,14 @@ end
 function Base.parse(
     I::Type{<:Union{HourBeginning{T}, HourEnding{T}}}, str::AbstractString
 ) where T <: DateTime
-    #=
-    Example: "[2019-01-18 HB16)"
-    =#
-    re = _regex(LEFT_INC_RE, DATE_RE, HR_RE, r".*", RIGHT_INC_RE)
-    a, b, f, dt, m = _extract(I, re, str)
-
+    a, b, f, dt, m = _extract(I, ANCHORED_RE, str)
     return f(DateTime(dt...), a, b)
 end
 
 function Base.parse(
     I::Type{<:Union{HourBeginning{T}, HourEnding{T}}}, str::AbstractString
 ) where T <: ZonedDateTime
-    #=
-    Example: "[2019-01-18 HB16-06:00)"
-    =#
-    re = _regex(LEFT_INC_RE, DATE_RE, HR_RE, TZ_RE, RIGHT_INC_RE)
-    a, b, f, dt, m = _extract(I, re, str)
+    a, b, f, dt, m = _extract(I, ANCHORED_TZ_RE, str)
     return f(ZonedDateTime(dt..., FixedTimeZone(m[7])), a, b)
 end
 
@@ -98,8 +94,7 @@ function _parse(::Type{T}, str::AbstractString) where T <: ZonedDateTime
 
     Example: "2019-01-18T17:00:00-06:00" -> parse(ZonedDateTime, "2019-01-18T17:00:00.000-06:00")
     =#
-    re = _regex(r"^([\d\-]+T[\d:]+)(.\d{1,3})?([+-][[\d:]+)$")
-    m = match(re, str)
+    m = match(ZDT_RE, str)
 
     if m == nothing
         throw(ArgumentError("Failed to parse ZonedDateTime string $str w/ $re"))
