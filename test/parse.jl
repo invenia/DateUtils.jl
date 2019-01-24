@@ -20,18 +20,32 @@ end
     y = ZonedDateTime(b, tz"America/Winnipeg")
 
     @testset "_parse DateTime" begin
-        @test DateUtils._parse(DateTime, string(a)) == parse(DateTime, Dates.format(a, Dates.ISODateTimeFormat))
-        @test DateUtils._parse(DateTime, string(b)) == parse(DateTime, Dates.format(b, Dates.ISODateTimeFormat))
-        @test DateUtils._parse(DateTime, string(b)) == parse(DateTime, string(b))
-        @test DateUtils._parse(DateTime, string(a)) == parse(DateTime, string(a))     # Does this error?
+        # Test that date formating and stringification hasn't changed
+        @test "2019-01-18T16:00:00.0" == Dates.format(a, Dates.ISODateTimeFormat)
+        @test "2019-01-18T16:46:12.285" == Dates.format(b, Dates.ISODateTimeFormat)
+        @test "2019-01-18T16:00:00" == string(a)
+        @test "2019-01-18T16:46:12.285" == string(b)
+
+        # Test that _parse works like normal datetime parsing
+        @test DateUtils._parse(DateTime, "2019-01-18T16:00:00.0") == parse(DateTime, "2019-01-18T16:00:00.0")
+        @test DateUtils._parse(DateTime, "2019-01-18T16:46:12.285") == parse(DateTime, "2019-01-18T16:46:12.285")
+
+        # Missing milliseconds test
+        @test DateUtils._parse(DateTime, "2019-01-18T16:00:00") == parse(DateTime, "2019-01-18T16:00:00")
     end
 
     @testset "_parse ZonedDateTime" begin
-        @test DateUtils._parse(ZonedDateTime, string(x)) == parse(ZonedDateTime, Dates.format(x, TimeZones.ISOZonedDateTimeFormat))
-        @test DateUtils._parse(ZonedDateTime, string(y)) == parse(ZonedDateTime, Dates.format(y, TimeZones.ISOZonedDateTimeFormat))
-        @test DateUtils._parse(ZonedDateTime, string(y)) == parse(ZonedDateTime, string(y))
-        @test DateUtils._parse(ZonedDateTime, string(x)) == x
-        @test_throws ArgumentError parse(ZonedDateTime, string(x))
+        @test "2019-01-18T16:00:00.000-06:00" == Dates.format(x, TimeZones.ISOZonedDateTimeFormat)
+        @test "2019-01-18T16:46:12.285-06:00" == Dates.format(y, TimeZones.ISOZonedDateTimeFormat)
+        @test "2019-01-18T16:46:12.285-06:00" == string(y)
+        @test "2019-01-18T16:00:00-06:00" == string(x)
+
+        @test DateUtils._parse(ZonedDateTime, "2019-01-18T16:00:00.000-06:00") == parse(ZonedDateTime, "2019-01-18T16:00:00.000-06:00")
+        @test DateUtils._parse(ZonedDateTime, "2019-01-18T16:46:12.285-06:00") == parse(ZonedDateTime, "2019-01-18T16:46:12.285-06:00")
+
+        # Missing milliseconds test
+        @test DateUtils._parse(ZonedDateTime, "2019-01-18T16:00:00-06:00") == parse(ZonedDateTime, "2019-01-18T16:00:00.000-06:00")
+        @test_throws ArgumentError parse(ZonedDateTime, "2019-01-18T16:00:00-06:00")
     end
 
     anchored_intervals = [HE.((a, b, x, y))..., HB.((a, b, x, y))...]

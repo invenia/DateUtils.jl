@@ -16,19 +16,19 @@ const STRING_TO_PERIOD = Dict(
 _regex(re::Regex...) = Regex(string([r.pattern for r in re]...))
 
 # Regex components for our interval parsing
-const LEFT_INC_RE = r"^(\[|\()"
-const RIGHT_INC_RE = r"(\]|\))$"
-const DATE_RE = r"(\d{4})-(\d{1,2})-(\d{1,2})"
-const HR_RE = r" (H[EB])(\d{1,2})"
-const TZ_RE = r"([+-][\d|:]+)"
+const LEFT_INC_RE = r"^(?<linc>\[|\()"
+const RIGHT_INC_RE = r"(?<rinc>\]|\))$"
+const DATE_RE = r"(?<yyyy>\d{4})-(?<mm>\d{1,2})-(?<dd>\d{1,2})"
+const HR_RE = r" (?<HR>H[EB])(?<hr>\d{1,2})"
+const TZ_RE = r"(?<tz>[+-][\d|:]+)"
 # "(2018-12-02T23:00:00-06:00 .. 2018-12-03T00:00:00-06:00]"
-const INTERVAL_RE = _regex(LEFT_INC_RE, r"([\d\-T:.]+) .. ([\d\-T:.]+)", RIGHT_INC_RE)
+const INTERVAL_RE = _regex(LEFT_INC_RE, r"(?<ldate>[\d\-T:.]+) .. (?<rdate>[\d\-T:.]+)", RIGHT_INC_RE)
 # "[2019-01-18 HB16)"
 const ANCHORED_RE = _regex(LEFT_INC_RE, DATE_RE, HR_RE, r".*", RIGHT_INC_RE)
 # "[2019-01-18 HB16-06:00)"
 const ANCHORED_TZ_RE = _regex(LEFT_INC_RE, DATE_RE, HR_RE, TZ_RE, RIGHT_INC_RE)
 # "2019-01-18T17:00:00-06:00"
-const ZDT_RE = _regex(r"^([\d\-]+T[\d:]+)(.\d{1,3})?([+-][[\d:]+)$")
+const ZDT_RE = _regex(r"^(?<dt>[\d\-]+T[\d:]+)(?<ms>.\d{1,3})?(?<tz>[+-][[\d:]+)$")
 
 
 function Base.parse(::Type{Period}, str::AbstractString)
@@ -68,8 +68,9 @@ function Base.parse(::Type{Interval{T}}, str::AbstractString) where T
         throw(ArgumentError("Failed to parse Interval string $str w/ $re"))
     end
 
-    a, f, l, b = m.captures
-    return Interval(_parse(T, f), _parse(T, l), a == "[", b == "]")
+    return Interval(
+        _parse(T, m[:ldate]), _parse(T, m[:rdate]), m[:linc] == "[", m[:rinc] == "]"
+    )
 end
 
 function Base.parse(
@@ -96,12 +97,12 @@ function _parse(::Type{T}, str::AbstractString) where T <: ZonedDateTime
     =#
     m = match(ZDT_RE, str)
 
-    if m == nothing
+    if m === nothing
         throw(ArgumentError("Failed to parse ZonedDateTime string $str w/ $re"))
     end
 
-    ms = m[2] === nothing ? ".000" : m[2]
-    s = string(m[1], ms, m[3])
+    ms = m[:ms] === nothing ? ".000" : m[:ms]
+    s = string(m[:dt], ms, m[:tz])
     parse(T, s)
 end
 
@@ -112,10 +113,17 @@ function _extract(::Type{<:AnchoredInterval}, re::Regex, str::AbstractString)
         throw(ArgumentError("Failed to parse AnchoredInterval string $str w/ $re"))
     end
 
-    a = m[1] == "["
-    b = m.captures[end] == "]"
-    f = m[5] == "HE" ? HE : HB
-    dt = parse.(Int, m.captures[[2, 3, 4, 6]])
+    a = m[:linc] == "["
+    b = m[:rinc] == "]"
+    f = if m[:HR] == "HE"
+        HE
+    elseif m[:HR] == "HB"
+        HB
+    else
+        throw(ArgumentError("Unknown anchored interval abbreviation: $(m[:HR])"))
+    end
+
+    dt = parse.(Int, [m[:yyyy], m[:mm], m[:dd], m[:hr]])
 
     return a, b, f, dt, m
 end
