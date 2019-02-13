@@ -1,4 +1,4 @@
-using Compat.Dates
+using Dates
 
 const STRING_TO_PERIOD = Dict(
     "Year" => Year,

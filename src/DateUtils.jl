@@ -1,6 +1,5 @@
 module DateUtils
 
-using Compat: AbstractDateTime
 using Intervals
 using TimeZones: FixedTimeZone, ZonedDateTime, Local, timezone, localtime, interpret
 
