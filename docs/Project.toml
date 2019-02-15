@@ -1,0 +1,6 @@
+[deps]
+DateUtils = "e680702d-4392-50d3-a946-aa37d52fc774"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+Documenter = "~0.21"
