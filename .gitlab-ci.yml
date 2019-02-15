@@ -28,7 +28,7 @@ variables:
     - linux
     - 64-bit
     - docker-ci
-  extends: .test_docker
+  extends: .test_docker_1_0
 
 "1.1 (Mac)":
   tags:

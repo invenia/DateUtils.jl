@@ -1,7 +1,9 @@
 module DateUtils
 
+using Dates
+using Dates: coarserperiod, value
 using Intervals
-using TimeZones: FixedTimeZone, ZonedDateTime, Local, timezone, localtime, interpret
+using TimeZones: FixedTimeZone, Local, ZonedDateTime, interpret, localtime, timezone
 
 include("condense.jl")
 include("hourofweek.jl")
