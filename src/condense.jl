@@ -1,6 +1,3 @@
-using Compat.Dates
-import Compat.Dates: value, coarserperiod
-
 function condense(p::P) where P <: Period
     last_type = P
     last_value = value(p)

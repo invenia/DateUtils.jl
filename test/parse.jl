@@ -1,4 +1,4 @@
-using Compat.Dates
+using Dates
 using Intervals
 using TimeZones
 

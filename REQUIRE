@@ -1,4 +1,3 @@
-julia 0.6
-Compat 0.37
-TimeZones
+julia 0.7
 Intervals
+TimeZones

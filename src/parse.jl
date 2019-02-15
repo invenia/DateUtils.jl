@@ -1,5 +1,3 @@
-using Compat.Dates
-
 const STRING_TO_PERIOD = Dict(
     "Year" => Year,
     "Month" => Month,

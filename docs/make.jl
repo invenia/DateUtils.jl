@@ -1,8 +1,8 @@
-using Documenter, DateUtils
+using DateUtils, Documenter
 
 makedocs(
     modules = [DateUtils],
-    format = :html,
+    format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true"),
     pages = [
         "Home" => "index.md",
     ],
@@ -10,6 +10,6 @@ makedocs(
     sitename = "DateUtils.jl",
     authors = "Curtis Vogt",
     assets = ["assets/invenia.css"],
-    strict = true,
     checkdocs = :none,
+    strict = true,
 )
