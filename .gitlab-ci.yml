@@ -47,8 +47,8 @@ variables:
   tags:
     - linux
     - 64-bit
-    - shell-ci
-  extends: .test_shell_1_1
+    - docker-ci
+  extends: .test_docker_1_1
 
 "Nightly (Mac)":
   tags:
@@ -67,5 +67,5 @@ variables:
   tags:
     - linux
     - 64-bit
-    - shell-ci
-  extends: .test_shell_nightly
+    - docker-ci
+  extends: .test_docker_nightly

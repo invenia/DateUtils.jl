@@ -14,10 +14,10 @@ uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
 version = "1.5.1"
 
 [[DateUtils]]
-deps = ["Compat", "Intervals", "TimeZones"]
-git-tree-sha1 = "e19c0101729051c4aa5bd4cd36a7947cbf6bac0c"
+deps = ["Dates", "Intervals", "TimeZones"]
+path = ".."
 uuid = "e680702d-4392-50d3-a946-aa37d52fc774"
-version = "0.2.0"
+version = "0.2.0+"
 
 [[Dates]]
 deps = ["Printf"]
