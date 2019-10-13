@@ -18,6 +18,7 @@ end
     dt_b = DateTime(2019, 1, 18, 16, 46, 12, 285)
     zdt_a = ZonedDateTime(dt_a, tz"America/Winnipeg")
     zdt_b = ZonedDateTime(dt_b, tz"America/Winnipeg")
+    zdt_c = ZonedDateTime(dt_a, tz"Asia/Almaty")
 
     @testset "_parse DateTime" begin
         # Test that date formating and stringification hasn't changed
@@ -43,19 +44,26 @@ end
         @test DateUtils._parse(ZonedDateTime, "2019-01-18T16:00:00.000-06:00") == parse(ZonedDateTime, "2019-01-18T16:00:00.000-06:00")
         @test DateUtils._parse(ZonedDateTime, "2019-01-18T16:46:12.285-06:00") == parse(ZonedDateTime, "2019-01-18T16:46:12.285-06:00")
 
+        @test DateUtils._parse(ZonedDateTime, "2019-01-18T16:00:00.000+06:00") == parse(ZonedDateTime, "2019-01-18T16:00:00.000+06:00")
+        @test DateUtils._parse(ZonedDateTime, "2019-01-18T16:46:12.285+06:00") == parse(ZonedDateTime, "2019-01-18T16:46:12.285+06:00")
+
         # Missing milliseconds test
         @test DateUtils._parse(ZonedDateTime, "2019-01-18T16:00:00-06:00") == parse(ZonedDateTime, "2019-01-18T16:00:00.000-06:00")
         @test_throws ArgumentError parse(ZonedDateTime, "2019-01-18T16:00:00-06:00")
     end
 
-    anchored_intervals = [HE.((dt_a, dt_b, zdt_a, zdt_b))..., HB.((dt_a, dt_b, zdt_a, zdt_b))...]
+    anchored_intervals = [
+        HE.((dt_a, dt_b, zdt_a, zdt_b))...,
+        HB.((dt_a, dt_b, zdt_a, zdt_b))...,
+        HE.((dt_a, dt_b, zdt_a, zdt_c))...,
+    ]
     @testset "parse AnchoredInterval" begin
         for i in anchored_intervals
             @test parse(typeof(i), string(i)) == i
         end
     end
 
-    intervals = [Interval(x, x + Hour(1)) for x in (dt_a, dt_b, zdt_a, zdt_b)]
+    intervals = [Interval(x, x + Hour(1)) for x in (dt_a, dt_b, zdt_a, zdt_b, zdt_c)]
     @testset "parse Interval" begin
         for i in intervals
             @test parse(typeof(i), string(i)) == i
