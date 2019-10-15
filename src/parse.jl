@@ -20,7 +20,7 @@ const DATE_RE = r"(?<yyyy>\d{4})-(?<mm>\d{1,2})-(?<dd>\d{1,2})"
 const HR_RE = r" (?<HR>H[EB])(?<hr>\d{1,2})"
 const TZ_RE = r"(?<tz>[+-][\d|:]+)"
 # "(2018-12-02T23:00:00-06:00 .. 2018-12-03T00:00:00-06:00]"
-const INTERVAL_RE = _regex(LEFT_INC_RE, r"(?<ldate>[\d\-T:.]+) .. (?<rdate>[\d\-T:.]+)", RIGHT_INC_RE)
+const INTERVAL_RE = _regex(LEFT_INC_RE, r"(?<ldate>[\d\-T:.+]+) .. (?<rdate>[\d\-T:.+]+)", RIGHT_INC_RE)
 # "[2019-01-18 HB16)"
 const ANCHORED_RE = _regex(LEFT_INC_RE, DATE_RE, HR_RE, r".*", RIGHT_INC_RE)
 # "[2019-01-18 HB16-06:00)"
@@ -63,7 +63,7 @@ function Base.parse(::Type{Interval{T}}, str::AbstractString) where T
     m = match(INTERVAL_RE, str)
 
     if m === nothing
-        throw(ArgumentError("Failed to parse Interval string $str w/ $re"))
+        throw(ArgumentError("Failed to parse Interval string $str w/ $INTERVAL_RE"))
     end
 
     return Interval(
@@ -96,7 +96,7 @@ function _parse(::Type{T}, str::AbstractString) where T <: ZonedDateTime
     m = match(ZDT_RE, str)
 
     if m === nothing
-        throw(ArgumentError("Failed to parse ZonedDateTime string $str w/ $re"))
+        throw(ArgumentError("Failed to parse ZonedDateTime string $str w/ $ZDT_RE"))
     end
 
     ms = m[:ms] === nothing ? ".000" : m[:ms]
