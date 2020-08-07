@@ -59,19 +59,6 @@ Dates.format(zdt, TimeZones.ISOZonedDateTimeFormat)
 to ensure that you're output strings are parsable.
 =#
 
-function Base.parse(::Type{Interval{T}}, str::AbstractString) where T
-    m = match(INTERVAL_RE, str)
-
-    if m === nothing
-        throw(ArgumentError("Failed to parse Interval string $str w/ $INTERVAL_RE"))
-    end
-
-    L = m[:linc] == "[" ? Closed : Open
-    R = m[:rinc] == "]" ? Closed : Open
-
-    return Interval{L,R}(_parse(T, m[:ldate]), _parse(T, m[:rdate]))
-end
-
 function Base.parse(
     I::Type{<:Union{HourBeginning{T}, HourEnding{T}}}, str::AbstractString
 ) where T <: DateTime

@@ -63,13 +63,4 @@ end
         end
         @test_throws ArgumentError parse(HourEnding{DateTime}, "[2019-01-18 HC16)")
     end
-
-    intervals = [Interval(x, x + Hour(1)) for x in (dt_a, dt_b, zdt_a, zdt_b, zdt_c)]
-    @testset "parse Interval" begin
-        for i in intervals
-            @test parse(Interval{eltype(i)}, string(i)) == i
-        end
-
-        @test_throws ArgumentError parse(Interval{DateTime}, "<2018-12-02 .. 2018-12-03>")
-    end
 end
