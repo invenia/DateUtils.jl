@@ -66,23 +66,24 @@ function Base.parse(::Type{Interval{T}}, str::AbstractString) where T
         throw(ArgumentError("Failed to parse Interval string $str w/ $INTERVAL_RE"))
     end
 
-    return Interval(
-        _parse(T, m[:ldate]), _parse(T, m[:rdate]), m[:linc] == "[", m[:rinc] == "]"
-    )
+    L = m[:linc] == "[" ? Closed : Open
+    R = m[:rinc] == "]" ? Closed : Open
+
+    return Interval{L,R}(_parse(T, m[:ldate]), _parse(T, m[:rdate]))
 end
 
 function Base.parse(
     I::Type{<:Union{HourBeginning{T}, HourEnding{T}}}, str::AbstractString
 ) where T <: DateTime
-    a, b, f, dt, m = _extract(I, ANCHORED_RE, str)
-    return f(DateTime(dt...), a, b)
+    I, dt, m = _extract(I, ANCHORED_RE, str)
+    return I(DateTime(dt...))
 end
 
 function Base.parse(
     I::Type{<:Union{HourBeginning{T}, HourEnding{T}}}, str::AbstractString
 ) where T <: ZonedDateTime
-    a, b, f, dt, m = _extract(I, ANCHORED_TZ_RE, str)
-    return f(ZonedDateTime(dt..., FixedTimeZone(m[7])), a, b)
+    I, dt, m = _extract(I, ANCHORED_TZ_RE, str)
+    return I(ZonedDateTime(dt..., FixedTimeZone(m[7])))
 end
 
 _parse(::Type{T}, str::AbstractString) where T = parse(T, str)
@@ -111,17 +112,17 @@ function _extract(::Type{<:AnchoredInterval}, re::Regex, str::AbstractString)
         throw(ArgumentError("Failed to parse AnchoredInterval string $str w/ $re"))
     end
 
-    a = m[:linc] == "["
-    b = m[:rinc] == "]"
-    f = if m[:HR] == "HE"
-        HE
+    L = m[:linc] == "[" ? Closed : Open
+    R = m[:rinc] == "]" ? Closed : Open
+    I = if m[:HR] == "HE"
+        HourEnding{L,R}
     elseif m[:HR] == "HB"
-        HB
+        HourBeginning{L,R}
     else
         throw(ArgumentError("Unknown anchored interval abbreviation: $(m[:HR])"))
     end
 
     dt = parse.(Int, [m[:yyyy], m[:mm], m[:dd], m[:hr]])
 
-    return a, b, f, dt, m
+    return I, dt, m
 end
